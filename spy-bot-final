@@ -1,0 +1,54 @@
+import os
+import telebot
+from telebot import types
+import time
+
+# 1. Token lena Environment Variable se (Railway ke liye zaroori)
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+if not BOT_TOKEN:
+    print("Error: BOT_TOKEN is missing!")
+    exit()
+
+# 2. Bot Initialize
+bot = telebot.TeleBot(BOT_TOKEN)
+
+# 3. Start Command
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    kb = types.InlineKeyboardMarkup()
+    kb.add(types.InlineKeyboardButton("🔍 Trace Number", callback_data='trace'))
+    bot.reply_to(message, "👋 Hello! I am SpyBot.\n\nClick 'Trace Number' to start searching.", reply_markup=kb)
+
+# 4. Trace Button Click Karne Par
+@bot.callback_query_handler(func=lambda call: call.data == 'trace')
+def ask_for_number(call):
+    bot.send_message(call.message.chat.id, "📱 Send me the Mobile Number (e.g., 923001234567):")
+    # User ka reply wait karna
+    bot.register_next_step_handler(call.message, process_trace)
+
+# 5. Number Process Karne Ka Logic
+def process_trace(message):
+    phone = message.text.strip()
+    
+    # Dummy Data (Abhi ye dikhayega, baad mein API lagayenge)
+    response = f"""
+🔍 **Search Result for: {phone}**
+
+✅ **Status:** Found in Database
+👤 **Name:** John Doe
+📱 **Username:** @johndoe_official
+📍 **Location:** Lahore, Pakistan
+📅 **Last Seen:** Today at 10:45 AM
+📞 **Carrier:** Jazz / Telenor
+
+💎 *Want more details?* Upgrade to Premium!
+"""
+    bot.reply_to(message, response, parse_mode="Markdown")
+
+# 6. Bot Start Karna
+print("Bot is running on Railway... 🚀")
+try:
+    bot.infinity_polling()
+except Exception as e:
+    print(f"Error: {e}")
